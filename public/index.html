@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔮 나의 전생은?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--duration) infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 600px;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 60px;
+      margin-bottom: 10px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #f5af19, #f12711, #f5af19);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 3s ease infinite;
+    }
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #a0a0cc;
+      margin-bottom: 40px;
+    }
+
+    .input-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .input-wrapper {
+      width: 100%;
+      position: relative;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 18px;
+      font-family: 'Noto Sans KR', sans-serif;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      outline: none;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    input[type="text"]::placeholder { color: rgba(255,255,255,0.4); }
+    input[type="text"]:focus {
+      border-color: #f5af19;
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 0 20px rgba(245,175,25,0.2);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Noto Sans KR', sans-serif;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f5af19, #f12711);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(241,39,17,0.4); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+      gap: 16px;
+    }
+    .loading.active { display: flex; }
+
+    .crystal-ball {
+      font-size: 80px;
+      animation: shake 0.5s ease-in-out infinite;
+    }
+    @keyframes shake {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    .loading-text {
+      font-size: 16px;
+      color: #d0d0ff;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .result {
+      display: none;
+      width: 100%;
+      margin-top: 40px;
+      animation: fadeInUp 0.6s ease;
+    }
+    .result.active { display: block; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+    }
+
+    .result-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .result-header .name-highlight {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f5af19;
+    }
+    .result-header .subtitle-text {
+      font-size: 14px;
+      color: #a0a0cc;
+      margin-top: 4px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .info-item {
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .info-item.full { grid-column: 1 / -1; }
+    .info-label {
+      font-size: 11px;
+      color: #8888bb;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .info-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .info-value.year { color: #7dd3fc; }
+    .info-value.job { color: #fbbf24; }
+    .info-value.death { color: #f87171; }
+
+    .story-section {
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      line-height: 1.8;
+      font-size: 15px;
+      color: #e0e0f0;
+      white-space: pre-wrap;
+    }
+
+    .share-section {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-share {
+      flex: 1;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans KR', sans-serif;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-share:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .btn-retry {
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Noto Sans KR', sans-serif;
+      border: 2px solid #f5af19;
+      border-radius: 12px;
+      background: transparent;
+      color: #f5af19;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-retry:hover {
+      background: rgba(245,175,25,0.1);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+      padding: 20px;
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+
+  <div class="container">
+    <div class="logo">🔮</div>
+    <h1>나의 전생은?</h1>
+    <p class="subtitle">이름을 입력하면 당신의 전생을 알려드립니다</p>
+
+    <div class="input-section" id="inputSection">
+      <div class="input-wrapper">
+        <input type="text" id="nameInput" placeholder="이름을 입력하세요" maxlength="20" autocomplete="off">
+      </div>
+      <button class="btn-primary" id="submitBtn" onclick="getPastLife()">전생 알아보기 ✨</button>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="crystal-ball">🔮</div>
+      <div class="loading-text" id="loadingText">전생의 기억을 불러오는 중...</div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-card">
+        <div class="result-header">
+          <div class="name-highlight" id="resultName"></div>
+          <div class="subtitle-text">님의 전생 리포트</div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">⏰ 전생 시기</div>
+            <div class="info-value year" id="resultYear"></div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">💼 직업 / 존재</div>
+            <div class="info-value job" id="resultJob"></div>
+          </div>
+          <div class="info-item full">
+            <div class="info-label">💀 사망 원인</div>
+            <div class="info-value death" id="resultDeath"></div>
+          </div>
+        </div>
+
+        <div class="story-section" id="resultStory"></div>
+
+        <div class="share-section">
+          <button class="btn-share" onclick="shareKakao()">📱 카카오톡 공유</button>
+          <button class="btn-share" onclick="shareTwitter()">🐦 트위터 공유</button>
+          <button class="btn-share" onclick="copyResult()">📋 복사하기</button>
+        </div>
+
+        <button class="btn-retry" onclick="retry()">🔄 다시 알아보기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer>© 2026 나의 전생은? | Just for fun 🔮</footer>
+
+  <script>
+    // Stars background
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.setProperty('--duration', (1 + Math.random() * 3) + 's');
+      star.style.animationDelay = Math.random() * 3 + 's';
+      starsEl.appendChild(star);
+    }
+
+    const loadingMessages = [
+      '전생의 기억을 불러오는 중...',
+      '시간의 강을 거슬러 올라가는 중...',
+      '운명의 책을 펼치는 중...',
+      '저승사자에게 기록을 요청하는 중...',
+      '윤회의 수레바퀴를 돌리는 중...',
+      '전생의 먼지를 털어내는 중...',
+      '과거의 문을 여는 중...'
+    ];
+
+    let currentResult = null;
+
+    const nameInput = document.getElementById('nameInput');
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') getPastLife();
+    });
+
+    async function getPastLife() {
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        nameInput.style.borderColor = '#f12711';
+        setTimeout(() => nameInput.style.borderColor = '', 1000);
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      document.getElementById('inputSection').style.display = 'none';
+      document.getElementById('result').classList.remove('active');
+
+      const loading = document.getElementById('loading');
+      loading.classList.add('active');
+
+      let msgIndex = 0;
+      const msgInterval = setInterval(() => {
+        msgIndex = (msgIndex + 1) % loadingMessages.length;
+        document.getElementById('loadingText').textContent = loadingMessages[msgIndex];
+      }, 2000);
+
+      try {
+        const res = await fetch('/api/past-life', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+
+        if (!res.ok) throw new Error('서버 오류');
+
+        const data = await res.json();
+        currentResult = data;
+
+        document.getElementById('resultName').textContent = data.name;
+        document.getElementById('resultYear').textContent = data.year;
+        document.getElementById('resultJob').textContent = data.occupation;
+        document.getElementById('resultDeath').textContent = data.death;
+        document.getElementById('resultStory').textContent = data.story;
+
+        loading.classList.remove('active');
+        document.getElementById('result').classList.add('active');
+      } catch (err) {
+        loading.classList.remove('active');
+        document.getElementById('inputSection').style.display = 'flex';
+        showToast('오류가 발생했습니다. 다시 시도해주세요!');
+      }
+
+      clearInterval(msgInterval);
+      btn.disabled = false;
+    }
+
+    function retry() {
+      document.getElementById('result').classList.remove('active');
+      document.getElementById('inputSection').style.display = 'flex';
+      nameInput.value = '';
+      nameInput.focus();
+    }
+
+    function getShareText() {
+      if (!currentResult) return '';
+      return `🔮 나의 전생 리포트\n\n` +
+        `이름: ${currentResult.name}\n` +
+        `전생 시기: ${currentResult.year}\n` +
+        `직업/존재: ${currentResult.occupation}\n` +
+        `사망 원인: ${currentResult.death}\n\n` +
+        `${currentResult.story}\n\n` +
+        `👉 나도 전생 알아보기!`;
+    }
+
+    function copyResult() {
+      navigator.clipboard.writeText(getShareText()).then(() => {
+        showToast('클립보드에 복사되었습니다! 📋');
+      }).catch(() => {
+        showToast('복사에 실패했습니다.');
+      });
+    }
+
+    function shareTwitter() {
+      const text = `🔮 나의 전생은 ${currentResult.year} ${currentResult.occupation}!\n사인: ${currentResult.death}\n\n나도 전생 알아보기 👉`;
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`, '_blank');
+    }
+
+    function shareKakao() {
+      const text = getShareText();
+      if (navigator.share) {
+        navigator.share({ title: '🔮 나의 전생은?', text: text, url: window.location.href })
+          .catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('텍스트가 복사되었습니다. 카카오톡에 붙여넣기 해주세요! 📱');
+        });
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>
